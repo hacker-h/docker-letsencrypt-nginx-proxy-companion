@@ -30,7 +30,7 @@ jobs:
         --frontend-opt platform=linux/arm/v7 \
         --frontend-opt filename=./Dockerfile.armv7 \
         --exporter image \
-        --exporter-opt name=docker.io/hackerh/nginx-proxy:armv7-latest \
+        --exporter-opt name=docker.io/hackerh/docker-letsencrypt-nginx-proxy-companion:armv7-latest \
         --exporter-opt push=false \
         --local dockerfile=. \
         --local context=.
@@ -39,7 +39,7 @@ jobs:
         --frontend-opt platform=linux/amd64 \
         --frontend-opt filename=./Dockerfile.amd64 \
         --exporter image \
-        --exporter-opt name=docker.io/hackerh/nginx-proxy:amd64-latest \
+        --exporter-opt name=docker.io/hackerh/docker-letsencrypt-nginx-proxy-companion:amd64-latest \
         --exporter-opt push=false \
         --local dockerfile=. \
         --local context=.
@@ -66,7 +66,7 @@ jobs:
         --frontend-opt platform=linux/arm/v7 \
         --frontend-opt filename=./Dockerfile.armv7 \
         --exporter image \
-        --exporter-opt name=docker.io/hackerh/nginx-proxy:armv7-latest \
+        --exporter-opt name=docker.io/hackerh/docker-letsencrypt-nginx-proxy-companion:armv7-latest \
         --exporter-opt push=true \
         --local dockerfile=. \
         --local context=.
@@ -75,19 +75,19 @@ jobs:
         --frontend-opt platform=linux/amd64 \
         --frontend-opt filename=./Dockerfile.amd64 \
         --exporter image \
-        --exporter-opt name=docker.io/hackerh/nginx-proxy:amd64-latest \
+        --exporter-opt name=docker.io/hackerh/docker-letsencrypt-nginx-proxy-companion:amd64-latest \
         --exporter-opt push=true \
         --local dockerfile=. \
         --local context=.
 
       - export DOCKER_CLI_EXPERIMENTAL=enabled
       - |
-        docker manifest create hackerh/nginx-proxy:latest \
-        hackerh/nginx-proxy:amd64-latest \
-        hackerh/nginx-proxy:armv7-latest
-      - docker manifest annotate hackerh/nginx-proxy:latest hackerh/nginx-proxy:amd64-latest --arch amd64
-      - docker manifest annotate hackerh/nginx-proxy:latest hackerh/nginx-proxy:armv7-latest --arch arm --variant v7
-      - docker manifest push hackerh/nginx-proxy:latest
+        docker manifest create hackerh/docker-letsencrypt-nginx-proxy-companion:latest \
+        hackerh/docker-letsencrypt-nginx-proxy-companion:amd64-latest \
+        hackerh/docker-letsencrypt-nginx-proxy-companion:armv7-latest
+      - docker manifest annotate hackerh/docker-letsencrypt-nginx-proxy-companion:latest hackerh/docker-letsencrypt-nginx-proxy-companion:amd64-latest --arch amd64
+      - docker manifest annotate hackerh/docker-letsencrypt-nginx-proxy-companion:latest hackerh/docker-letsencrypt-nginx-proxy-companion:armv7-latest --arch arm --variant v7
+      - docker manifest push hackerh/docker-letsencrypt-nginx-proxy-companion:latest
 
     - stage: build
       name: "push tagged image"
@@ -111,7 +111,7 @@ jobs:
         --frontend-opt platform=linux/arm/v7 \
         --frontend-opt filename=./Dockerfile.armv7 \
         --exporter image \
-        --exporter-opt name=docker.io/hackerh/nginx-proxy:armv7-"${TRAVIS_TAG}" \
+        --exporter-opt name=docker.io/hackerh/docker-letsencrypt-nginx-proxy-companion:armv7-"${TRAVIS_TAG}" \
         --exporter-opt push=true \
         --local dockerfile=. \
         --local context=.
@@ -120,16 +120,16 @@ jobs:
         --frontend-opt platform=linux/amd64 \
         --frontend-opt filename=./Dockerfile.amd64 \
         --exporter image \
-        --exporter-opt name=docker.io/hackerh/nginx-proxy:amd64-"${TRAVIS_TAG}" \
+        --exporter-opt name=docker.io/hackerh/docker-letsencrypt-nginx-proxy-companion:amd64-"${TRAVIS_TAG}" \
         --exporter-opt push=true \
         --local dockerfile=. \
         --local context=.
 
       - export DOCKER_CLI_EXPERIMENTAL=enabled
       - |
-        docker manifest create hackerh/nginx-proxy:"${TRAVIS_TAG}" \
-        hackerh/nginx-proxy:amd64-"${TRAVIS_TAG}" \
-        hackerh/nginx-proxy:armv7-"${TRAVIS_TAG}"
-      - docker manifest annotate hackerh/nginx-proxy:"${TRAVIS_TAG}" hackerh/nginx-proxy:amd64-"${TRAVIS_TAG}" --arch amd64
-      - docker manifest annotate hackerh/nginx-proxy:"${TRAVIS_TAG}" hackerh/nginx-proxy:armv7-"${TRAVIS_TAG}" --arch arm --variant v7
-      - docker manifest push hackerh/nginx-proxy:"${TRAVIS_TAG}"
+        docker manifest create hackerh/docker-letsencrypt-nginx-proxy-companion:"${TRAVIS_TAG}" \
+        hackerh/docker-letsencrypt-nginx-proxy-companion:amd64-"${TRAVIS_TAG}" \
+        hackerh/docker-letsencrypt-nginx-proxy-companion:armv7-"${TRAVIS_TAG}"
+      - docker manifest annotate hackerh/docker-letsencrypt-nginx-proxy-companion:"${TRAVIS_TAG}" hackerh/docker-letsencrypt-nginx-proxy-companion:amd64-"${TRAVIS_TAG}" --arch amd64
+      - docker manifest annotate hackerh/docker-letsencrypt-nginx-proxy-companion:"${TRAVIS_TAG}" hackerh/docker-letsencrypt-nginx-proxy-companion:armv7-"${TRAVIS_TAG}" --arch arm --variant v7
+      - docker manifest push hackerh/docker-letsencrypt-nginx-proxy-companion:"${TRAVIS_TAG}"
