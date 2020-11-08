@@ -20,7 +20,8 @@ jobs:
       - cp Dockerfile Dockerfile.armv7
 
       - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-      - docker run --privileged linuxkit/binfmt:v0.6
+      - docker run --privileged linuxkit/binfmt:v0.8
+
       - docker run -d --privileged -p 1337:1337 --name buildkit moby/buildkit:v0.7.2 --addr tcp://0.0.0.0:1337 --oci-worker-platform linux/amd64 --oci-worker-platform linux/arm/v7
       - docker cp buildkit:/usr/bin/buildctl .
       - export BUILDKIT_HOST=tcp://0.0.0.0:1337
@@ -56,7 +57,7 @@ jobs:
       - cp Dockerfile Dockerfile.armv7
 
       - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-      - docker run --privileged linuxkit/binfmt:v0.6
+      - docker run --privileged linuxkit/binfmt:v0.8
       - docker run -d --privileged -p 1337:1337 --name buildkit moby/buildkit:v0.7.2 --addr tcp://0.0.0.0:1337 --oci-worker-platform linux/amd64 --oci-worker-platform linux/arm/v7
       - docker cp buildkit:/usr/bin/buildctl .
       - export BUILDKIT_HOST=tcp://0.0.0.0:1337
@@ -101,7 +102,7 @@ jobs:
       - cp Dockerfile Dockerfile.armv7
 
       - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-      - docker run --privileged linuxkit/binfmt:v0.6
+      - docker run --privileged linuxkit/binfmt:v0.8
       - docker run -d --privileged -p 1337:1337 --name buildkit moby/buildkit:v0.7.2 --addr tcp://0.0.0.0:1337 --oci-worker-platform linux/amd64 --oci-worker-platform linux/arm/v7
       - docker cp buildkit:/usr/bin/buildctl .
       - export BUILDKIT_HOST=tcp://0.0.0.0:1337
