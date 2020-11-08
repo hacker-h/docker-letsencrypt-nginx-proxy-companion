@@ -1,0 +1,134 @@
+dist: xenial
+
+addons:
+  apt:
+    packages:
+      - docker-ce
+
+jobs:
+  include:
+    - stage: build
+      name: "build image"
+      if: (tag IS blank)
+      sudo: required
+      services:
+        - docker
+      script:
+      - git clone https://github.com/nginx-proxy/docker-letsencrypt-nginx-proxy-companion docker-letsencrypt-nginx-proxy-companion
+      - cd ./docker-letsencrypt-nginx-proxy-companion
+      - cp Dockerfile Dockerfile.amd64
+      - cp Dockerfile Dockerfile.armv7
+
+      - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+      - docker run --privileged linuxkit/binfmt:v0.6
+      - docker run -d --privileged -p 1337:1337 --name buildkit moby/buildkit:v0.7.2 --addr tcp://0.0.0.0:1337 --oci-worker-platform linux/amd64 --oci-worker-platform linux/arm/v7
+      - docker cp buildkit:/usr/bin/buildctl .
+      - export BUILDKIT_HOST=tcp://0.0.0.0:1337
+      - |
+        ./buildctl build --frontend dockerfile.v0 \
+        --frontend-opt platform=linux/arm/v7 \
+        --frontend-opt filename=./Dockerfile.armv7 \
+        --exporter image \
+        --exporter-opt name=docker.io/hackerh/nginx-proxy:armv7-latest \
+        --exporter-opt push=false \
+        --local dockerfile=. \
+        --local context=.
+      - |
+        ./buildctl build --frontend dockerfile.v0 \
+        --frontend-opt platform=linux/amd64 \
+        --frontend-opt filename=./Dockerfile.amd64 \
+        --exporter image \
+        --exporter-opt name=docker.io/hackerh/nginx-proxy:amd64-latest \
+        --exporter-opt push=false \
+        --local dockerfile=. \
+        --local context=.
+
+    - stage: build
+      name: "push latest image"
+      if: (branch = master AND NOT type = pull_request)
+      sudo: required
+      services:
+        - docker
+      script:
+      - git clone https://github.com/nginx-proxy/docker-letsencrypt-nginx-proxy-companion docker-letsencrypt-nginx-proxy-companion
+      - cd ./docker-letsencrypt-nginx-proxy-companion
+      - cp Dockerfile Dockerfile.amd64
+      - cp Dockerfile Dockerfile.armv7
+
+      - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+      - docker run --privileged linuxkit/binfmt:v0.6
+      - docker run -d --privileged -p 1337:1337 --name buildkit moby/buildkit:v0.7.2 --addr tcp://0.0.0.0:1337 --oci-worker-platform linux/amd64 --oci-worker-platform linux/arm/v7
+      - docker cp buildkit:/usr/bin/buildctl .
+      - export BUILDKIT_HOST=tcp://0.0.0.0:1337
+      - |
+        ./buildctl build --frontend dockerfile.v0 \
+        --frontend-opt platform=linux/arm/v7 \
+        --frontend-opt filename=./Dockerfile.armv7 \
+        --exporter image \
+        --exporter-opt name=docker.io/hackerh/nginx-proxy:armv7-latest \
+        --exporter-opt push=true \
+        --local dockerfile=. \
+        --local context=.
+      - |
+        ./buildctl build --frontend dockerfile.v0 \
+        --frontend-opt platform=linux/amd64 \
+        --frontend-opt filename=./Dockerfile.amd64 \
+        --exporter image \
+        --exporter-opt name=docker.io/hackerh/nginx-proxy:amd64-latest \
+        --exporter-opt push=true \
+        --local dockerfile=. \
+        --local context=.
+
+      - export DOCKER_CLI_EXPERIMENTAL=enabled
+      - |
+        docker manifest create hackerh/nginx-proxy:latest \
+        hackerh/nginx-proxy:amd64-latest \
+        hackerh/nginx-proxy:armv7-latest
+      - docker manifest annotate hackerh/nginx-proxy:latest hackerh/nginx-proxy:amd64-latest --arch amd64
+      - docker manifest annotate hackerh/nginx-proxy:latest hackerh/nginx-proxy:armv7-latest --arch arm --variant v7
+      - docker manifest push hackerh/nginx-proxy:latest
+
+    - stage: build
+      name: "push tagged image"
+      if: (tag IS present)
+      sudo: required
+      services:
+        - docker
+      script:
+      - git clone https://github.com/nginx-proxy/docker-letsencrypt-nginx-proxy-companion docker-letsencrypt-nginx-proxy-companion
+      - cd ./docker-letsencrypt-nginx-proxy-companion
+      - cp Dockerfile Dockerfile.amd64
+      - cp Dockerfile Dockerfile.armv7
+
+      - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+      - docker run --privileged linuxkit/binfmt:v0.6
+      - docker run -d --privileged -p 1337:1337 --name buildkit moby/buildkit:v0.7.2 --addr tcp://0.0.0.0:1337 --oci-worker-platform linux/amd64 --oci-worker-platform linux/arm/v7
+      - docker cp buildkit:/usr/bin/buildctl .
+      - export BUILDKIT_HOST=tcp://0.0.0.0:1337
+      - |
+        ./buildctl build --frontend dockerfile.v0 \
+        --frontend-opt platform=linux/arm/v7 \
+        --frontend-opt filename=./Dockerfile.armv7 \
+        --exporter image \
+        --exporter-opt name=docker.io/hackerh/nginx-proxy:armv7-"${TRAVIS_TAG}" \
+        --exporter-opt push=true \
+        --local dockerfile=. \
+        --local context=.
+      - |
+        ./buildctl build --frontend dockerfile.v0 \
+        --frontend-opt platform=linux/amd64 \
+        --frontend-opt filename=./Dockerfile.amd64 \
+        --exporter image \
+        --exporter-opt name=docker.io/hackerh/nginx-proxy:amd64-"${TRAVIS_TAG}" \
+        --exporter-opt push=true \
+        --local dockerfile=. \
+        --local context=.
+
+      - export DOCKER_CLI_EXPERIMENTAL=enabled
+      - |
+        docker manifest create hackerh/nginx-proxy:"${TRAVIS_TAG}" \
+        hackerh/nginx-proxy:amd64-"${TRAVIS_TAG}" \
+        hackerh/nginx-proxy:armv7-"${TRAVIS_TAG}"
+      - docker manifest annotate hackerh/nginx-proxy:"${TRAVIS_TAG}" hackerh/nginx-proxy:amd64-"${TRAVIS_TAG}" --arch amd64
+      - docker manifest annotate hackerh/nginx-proxy:"${TRAVIS_TAG}" hackerh/nginx-proxy:armv7-"${TRAVIS_TAG}" --arch arm --variant v7
+      - docker manifest push hackerh/nginx-proxy:"${TRAVIS_TAG}"
